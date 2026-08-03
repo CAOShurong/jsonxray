@@ -95,23 +95,25 @@ def scan(
 
 
 def _sniff(stream: IO[str]) -> tuple[str, IO[str]]:
-    """Read a little, decide, and put it back.
+    """Read a little, decide, and push it back.
 
-    Returns the stream to actually read from, which is not always the one
-    passed in: a pipe cannot be rewound, so the peeked text is pushed in front
-    of it instead and the caller must use the wrapper. Returning the stream
-    rather than mutating it in place is the whole point -- discarding the
-    wrapper silently drops the first 64 KB of every piped file.
+    The peeked text is always pushed in front of the stream rather than
+    rewound, and the caller must use the returned wrapper. Discarding it
+    silently drops the first 64 KB of the input.
+
+    Rewinding is not attempted at all, because there is no way to ask a
+    stream whether it worked. A pipe on Windows answers ``seekable()`` with
+    True, accepts ``seek(0)`` without raising, and then reports ``tell() ==
+    0`` -- while the data is gone and every subsequent read returns "". Every
+    indicator lies, so trusting any of them made ``jsonxray -`` report "no
+    JSON records" for input that was perfectly good. Pushing the text back is
+    correct on every stream and costs one branch per read until the head is
+    consumed.
     """
     head = stream.read(CHUNK)
     if head == "":
         return "jsonl", stream
-    fmt = detect_format(head)
-    try:
-        stream.seek(0)
-    except (OSError, io.UnsupportedOperation, AttributeError):
-        return fmt, _prepend(stream, head)
-    return fmt, stream
+    return detect_format(head), _prepend(stream, head)
 
 
 class _Prepended(io.TextIOBase):

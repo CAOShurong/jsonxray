@@ -41,6 +41,36 @@ class Pipe(io.TextIOBase):
     def seekable(self) -> bool:
         return False
 
+
+class LyingPipe(io.TextIOBase):
+    """A pipe that claims it can seek, accepts the seek, and loses the data.
+
+    This is what ``sys.stdin`` actually does on Windows, and it is nastier
+    than a stream that refuses: ``seekable()`` returns True, ``seek(0)``
+    raises nothing, and ``tell()`` then answers 0 -- while the bytes are gone
+    and every later read returns "". :class:`Pipe` above, which refuses
+    honestly, is the stream this suite used to test against, so the suite
+    passed while ``jsonxray -`` silently profiled nothing at all.
+    """
+
+    def __init__(self, text: str) -> None:
+        self._inner = io.StringIO(text)
+
+    def read(self, size: int = -1) -> str:
+        return self._inner.read(size)
+
+    def readline(self, size: int = -1) -> str:  # type: ignore[override]
+        return self._inner.readline(size)
+
+    def seek(self, *args, **kwargs):  # type: ignore[override]
+        return 0  # accepted, and does nothing
+
+    def tell(self) -> int:
+        return 0  # and lies about it afterwards
+
+    def seekable(self) -> bool:
+        return True
+
     def __iter__(self):
         while True:
             line = self.readline()
@@ -196,6 +226,31 @@ class TestNonSeekableInput(unittest.TestCase):
     def test_an_empty_pipe(self):
         p = scan(Pipe(""), Profile())
         self.assertEqual(p.records, 0)
+
+    def test_a_pipe_that_claims_to_be_seekable_and_is_not(self):
+        """The bug that shipped in 0.1.0.
+
+        Real stdin accepts seek(0) and then has nothing left, so sniffing
+        handed the scanner an exhausted stream and `jsonxray -` reported "no
+        JSON records" for input that was fine. Nothing about the stream can
+        be asked to detect this, so the peeked text is now always pushed
+        back instead of rewound.
+        """
+        p = scan(LyingPipe('{"a": 1}\n{"a": 2}\n{"a": 3}\n'), Profile())
+        self.assertEqual(p.records, 3)
+
+    def test_a_lying_pipe_longer_than_the_sniff_buffer(self):
+        records = [{"i": i} for i in range(20_000)]
+        text = "\n".join(json.dumps(r) for r in records) + "\n"
+        self.assertGreater(len(text), CHUNK)
+        p = scan(LyingPipe(text), Profile())
+        self.assertEqual(p.records, 20_000)
+        self.assertEqual(p.root.children["i"].numeric.minimum, 0)
+
+    def test_a_lying_pipe_carrying_an_array(self):
+        records = [{"i": i, "pad": "z" * 40} for i in range(3_000)]
+        p = scan(LyingPipe(json.dumps(records)), Profile())
+        self.assertEqual(p.records, 3_000)
 
 
 class TestLimit(unittest.TestCase):
