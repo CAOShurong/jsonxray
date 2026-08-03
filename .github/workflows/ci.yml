@@ -1,0 +1,147 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: py${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.9", "3.13"]
+        include:
+          - os: ubuntu-latest
+            python: "3.10"
+          - os: ubuntu-latest
+            python: "3.11"
+          - os: ubuntu-latest
+            python: "3.12"
+          - os: macos-latest
+            python: "3.13"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      # Run against a bare interpreter with nothing installed. The package
+      # claims no dependencies, and this is what proves it -- a test run
+      # inside an environment that happens to have things available would not.
+      - name: Test
+        run: python -m unittest discover -s tests -v
+        env:
+          PYTHONPATH: src
+
+      # The reason this tool exists is files that do not fit in memory, so the
+      # claim gets exercised rather than asserted: a file far larger than any
+      # plausible buffer, profiled with a hard cap on resident memory.
+      - name: Profile a file much larger than memory would allow
+        if: runner.os == 'Linux'
+        run: |
+          python - <<'PY'
+          import json, random
+          rng = random.Random(7)
+          plans = ["free", "pro", "enterprise"]
+          with open("big.jsonl", "w", encoding="utf-8") as out:
+              for i in range(400_000):
+                  record = {
+                      "id": f"id_{i}",
+                      "plan": rng.choice(plans),
+                      "n": rng.randrange(1000),
+                      "blob": "x" * 200,
+                  }
+                  if i % 10_000 == 0:
+                      record["n"] = str(record["n"])
+                  out.write(json.dumps(record) + "\n")
+          PY
+          ls -lh big.jsonl
+          # 220 MB of virtual address space against a ~110 MB input. A reader
+          # that accumulated records instead of streaming them dies here.
+          ( ulimit -v 220000 && python -m jsonxray big.jsonl --color none --only summary --only conflicts )
+        env:
+          PYTHONPATH: src
+
+      - name: Read from a pipe
+        if: runner.os == 'Linux'
+        run: cat docs/example.jsonl | python -m jsonxray - --color none --only summary
+        env:
+          PYTHONPATH: src
+
+      - name: Exit code says drift, not failure
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m jsonxray docs/example.jsonl --save base.json --only summary --color none
+          python -m jsonxray docs/example.jsonl --compare base.json --color none
+          set +e
+          python -m jsonxray docs/example-next-week.jsonl --compare base.json --color none
+          code=$?
+          set -e
+          test "$code" = "2" || { echo "expected exit 2 for drift, got $code"; exit 1; }
+        env:
+          PYTHONPATH: src
+
+  example:
+    name: Example file is reproducible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      # The example is generated from a fixed seed and the README quotes its
+      # numbers. If regenerating it changes a byte, those numbers are wrong.
+      - run: python docs/make_example.py
+      - run: git diff --exit-code -- docs/example.jsonl docs/example-next-week.jsonl
+
+  readme:
+    name: README is current
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install pillow
+      - run: python docs/build_docs.py --check
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install ruff
+      - run: ruff check src tests docs
+      - run: ruff format --check src tests docs
+
+  build:
+    name: Build distributions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install build twine
+      - run: python -m build
+      - run: python -m twine check --strict dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
