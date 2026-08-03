@@ -1,0 +1,7 @@
+# Line endings are content here, not formatting: the example files are inputs
+# the tests read line by line and count bytes of, so letting Git rewrite them
+# on checkout would make byte counts differ between Windows and Linux.
+* text=auto eol=lf
+*.png binary
+docs/example.jsonl text eol=lf
+docs/example-next-week.jsonl text eol=lf
