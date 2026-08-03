@@ -1,0 +1,81 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jsonxray"
+dynamic = ["version"]
+description = "See what is actually inside a JSON Lines file, including the parts that don't match the rest."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "TeresaCSR" }]
+keywords = [
+    "json",
+    "jsonl",
+    "ndjson",
+    "json-lines",
+    "schema",
+    "schema-inference",
+    "data-quality",
+    "profiling",
+    "cli",
+    "streaming",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Utilities",
+    "Typing :: Typed",
+]
+# Deliberately empty. A tool people reach for when a file will not load should
+# not itself need a working install of anything.
+dependencies = []
+
+[project.optional-dependencies]
+docs = ["pillow>=10"]
+
+[project.urls]
+Homepage = "https://github.com/TeresaCSR/jsonxray"
+Repository = "https://github.com/TeresaCSR/jsonxray"
+Issues = "https://github.com/TeresaCSR/jsonxray/issues"
+Changelog = "https://github.com/TeresaCSR/jsonxray/blob/main/CHANGELOG.md"
+
+[project.scripts]
+jsonxray = "jsonxray.cli:main"
+
+[tool.hatch.version]
+path = "src/jsonxray/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jsonxray"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "tests", "docs", "README.md", "LICENSE", "CHANGELOG.md"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+ignore = [
+    # The profile model is deliberately a wide dataclass; splitting it to
+    # satisfy an argument-count rule would make it harder to read.
+    "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests say what they mean in their names, which run long.
+"tests/*" = ["E501"]
