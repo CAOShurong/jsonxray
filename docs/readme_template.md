@@ -3,7 +3,7 @@
 **See what is actually inside a JSON Lines file — including the parts that
 don't match the rest.**
 
-[![CI](https://github.com/TeresaCSR/jsonxray/actions/workflows/ci.yml/badge.svg)](https://github.com/TeresaCSR/jsonxray/actions/workflows/ci.yml)
+[![CI](https://github.com/CAOShurong/jsonxray/actions/workflows/ci.yml/badge.svg)](https://github.com/CAOShurong/jsonxray/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/jsonxray.svg)](https://pypi.org/project/jsonxray/)
 [![Python](https://img.shields.io/pypi/pyversions/jsonxray.svg)](https://pypi.org/project/jsonxray/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -150,7 +150,7 @@ for node in profile.conflicts():
 ## Development
 
 ```bash
-git clone https://github.com/TeresaCSR/jsonxray
+git clone https://github.com/CAOShurong/jsonxray
 cd jsonxray
 python -m unittest discover -s tests
 ```

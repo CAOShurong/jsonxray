@@ -197,7 +197,7 @@ def build(check: bool) -> int:
         # An absolute URL, so the image also renders on PyPI, which does not
         # resolve repository-relative paths.
         url = (
-            f"https://raw.githubusercontent.com/TeresaCSR/jsonxray/main/docs/{stem}.png"
+            f"https://raw.githubusercontent.com/CAOShurong/jsonxray/main/docs/{stem}.png"
         )
         text = text.replace(placeholder, f"![{stem}]({url})")
 

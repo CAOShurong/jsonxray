@@ -28,4 +28,4 @@ First release.
 - `--json`, `--limit`, `--only`, `--depth`, `--ascii`, and colour depth
   degradation with `NO_COLOR` support.
 
-[0.1.0]: https://github.com/TeresaCSR/jsonxray/releases/tag/v0.1.0
+[0.1.0]: https://github.com/CAOShurong/jsonxray/releases/tag/v0.1.0

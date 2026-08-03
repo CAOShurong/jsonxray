@@ -9,7 +9,7 @@ description = "See what is actually inside a JSON Lines file, including the part
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
-authors = [{ name = "TeresaCSR" }]
+authors = [{ name = "Shurong Cao", email = "170531907+CAOShurong@users.noreply.github.com" }]
 keywords = [
     "json",
     "jsonl",
@@ -47,10 +47,10 @@ dependencies = []
 docs = ["pillow>=10"]
 
 [project.urls]
-Homepage = "https://github.com/TeresaCSR/jsonxray"
-Repository = "https://github.com/TeresaCSR/jsonxray"
-Issues = "https://github.com/TeresaCSR/jsonxray/issues"
-Changelog = "https://github.com/TeresaCSR/jsonxray/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/CAOShurong/jsonxray"
+Repository = "https://github.com/CAOShurong/jsonxray"
+Issues = "https://github.com/CAOShurong/jsonxray/issues"
+Changelog = "https://github.com/CAOShurong/jsonxray/blob/main/CHANGELOG.md"
 
 [project.scripts]
 jsonxray = "jsonxray.cli:main"

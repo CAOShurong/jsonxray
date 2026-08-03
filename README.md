@@ -3,7 +3,7 @@
 **See what is actually inside a JSON Lines file — including the parts that
 don't match the rest.**
 
-[![CI](https://github.com/TeresaCSR/jsonxray/actions/workflows/ci.yml/badge.svg)](https://github.com/TeresaCSR/jsonxray/actions/workflows/ci.yml)
+[![CI](https://github.com/CAOShurong/jsonxray/actions/workflows/ci.yml/badge.svg)](https://github.com/CAOShurong/jsonxray/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/jsonxray.svg)](https://pypi.org/project/jsonxray/)
 [![Python](https://img.shields.io/pypi/pyversions/jsonxray.svg)](https://pypi.org/project/jsonxray/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -15,7 +15,7 @@ where one field arrived as a string instead of a number.
 `jsonxray` reads the whole file once, in constant memory, and tells you that
 up front — with the line numbers.
 
-![fields](https://raw.githubusercontent.com/TeresaCSR/jsonxray/main/docs/fields.png)
+![fields](https://raw.githubusercontent.com/CAOShurong/jsonxray/main/docs/fields.png)
 
 ```bash
 pip install jsonxray
@@ -148,7 +148,7 @@ jsonxray exports/monday.jsonl --save baseline.json
 jsonxray exports/today.jsonl --compare baseline.json
 ```
 
-![drift](https://raw.githubusercontent.com/TeresaCSR/jsonxray/main/docs/drift.png)
+![drift](https://raw.githubusercontent.com/CAOShurong/jsonxray/main/docs/drift.png)
 
 Exit code `2` means a breaking change: a field disappeared, a new type
 appeared, something that was always present became optional, or something that
@@ -218,7 +218,7 @@ for node in profile.conflicts():
 ## Development
 
 ```bash
-git clone https://github.com/TeresaCSR/jsonxray
+git clone https://github.com/CAOShurong/jsonxray
 cd jsonxray
 python -m unittest discover -s tests
 ```
